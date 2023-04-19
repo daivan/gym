@@ -6,14 +6,15 @@ from stable_baselines3 import PPO
 
 # Change these two to match your model and file
 models_dir = "models/ppo"
-model_file = "2850000"
+model_file = "2150000"
 
 # change how many times it will play
 episodes = 10
 
 model_path = f"{models_dir}/{model_file}"
 
-env = gym.make('Pendulum-v1', g=9.81, render_mode="human")
+env = gym.make('CarRacing-v2', render_mode="human")
+
 
 model = PPO.load(model_path, env=env)
 

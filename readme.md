@@ -5,13 +5,22 @@ conda activate gymnasium
 ```
 Then we install everything we need
 ```
+conda install numpy
 pip install gymnasium
 pip install gymnasium[box2d]
+
+# CPU 
 pip install torch torchvision torchaudio
+# CUDA GPU 
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118 # GPU CUDA 11.8
+
 pip install stable-baselines3[extra] protobuf==3.20.*
 pip install mss pydirectinput
 pip install git+https://github.com/DLR-RM/stable-baselines3@feat/gymnasium-support # Installing this because stable_baseline 1.7.0 has trouble with gymnasium 0.28.1. https://github.com/DLR-RM/stable-baselines3/pull/780
 ```
+
+# For future installations regarding stable-baselines3
+You want to install stable-baselines3 v2.x.x but it is currently only in alpha. Hopefully by the time you read this it is released. If it is, then you can just install it with pip. If not, then you need to install it
 
 # Activate tensorboard
 to run the webserver for tensorboard go to the program that is currently logging and run this command
