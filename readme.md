@@ -8,6 +8,8 @@ Then we install everything we need
 conda install numpy
 pip install gymnasium
 pip install gymnasium[box2d]
+pip install gymnasium[atari]
+pip install gymnasium[accept-rom-license]
 
 # CPU 
 pip install torch torchvision torchaudio
@@ -17,6 +19,9 @@ pip install torch torchvision torchaudio --index-url https://download.pytorch.or
 pip install stable-baselines3[extra] protobuf==3.20.*
 pip install mss pydirectinput
 pip install git+https://github.com/DLR-RM/stable-baselines3@feat/gymnasium-support # Installing this because stable_baseline 1.7.0 has trouble with gymnasium 0.28.1. https://github.com/DLR-RM/stable-baselines3/pull/780
+
+# Custom environments
+pip install pygame
 ```
 
 # For future installations regarding stable-baselines3
