@@ -22,10 +22,15 @@ pip install git+https://github.com/DLR-RM/stable-baselines3@feat/gymnasium-suppo
 
 # Custom environments
 pip install pygame
+
+# Hyperparameter optimization
+pip install optuna
+pip install --upgrade optuna
+pip install tensorflow
 ```
 
 # For future installations regarding stable-baselines3
-You want to install stable-baselines3 v2.x.x but it is currently only in alpha. Hopefully by the time you read this it is released. If it is, then you can just install it with pip. If not, then you need to install it
+You want to install stable-baselines3 v2.x.x but it is currently only in alpha. Hopefully by the time you read this it is released. If it is, then you can just install it with pip. If not, then you need to install it.
 
 # Activate tensorboard
 to run the webserver for tensorboard go to the program that is currently logging and run this command
