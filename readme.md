@@ -27,6 +27,9 @@ pip install pygame
 pip install optuna
 pip install --upgrade optuna
 pip install tensorflow
+
+# To play games
+pip install keyboard
 ```
 
 # For future installations regarding stable-baselines3
