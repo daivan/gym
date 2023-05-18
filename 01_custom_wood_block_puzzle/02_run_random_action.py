@@ -1,9 +1,7 @@
-from environments.GridWorldEnv import GridWorldEnv
+from environments.WoodBlockPuzzle import WoodBlockPuzzle
 
-env = GridWorldEnv('human')
+env = WoodBlockPuzzle('human')
 #env = GridWorldEnv()
-
-env.reset()
 
 episodes = 100
 max_reward = 0
