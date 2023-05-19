@@ -3,7 +3,7 @@ from environments.WoodBlockPuzzle import WoodBlockPuzzle
 env = WoodBlockPuzzle('human')
 #env = GridWorldEnv()
 
-episodes = 100
+episodes = 10
 max_reward = 0
 for episode in range(episodes):
     observation = env.reset()

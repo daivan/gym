@@ -18,6 +18,8 @@ class WoodBlockPuzzle(gym.Env):
             {
                 "agent": spaces.Box(0, size - 1, shape=(2,), dtype=int),
                 "target": spaces.Box(0, size - 1, shape=(2,), dtype=int),
+                "board": spaces.Box(0, 2, shape=(64,), dtype=int),
+                'next_block': spaces.Box(0, 1, shape=(1,), dtype=int) # can only be 0 as of now
             }
         )
 
@@ -38,7 +40,8 @@ class WoodBlockPuzzle(gym.Env):
         self.clock = None
 
     def _get_obs(self):
-        return {"agent": self._agent_location, "target": self._target_location}
+        next_block = np.array([self._next_block])
+        return {"agent": self._agent_location, "target": self._target_location, "board": self._fill_box, "next_block": next_block}
     
     def _get_info(self):
         return {"distance": np.linalg.norm(self._agent_location - self._target_location, ord=1)}
@@ -51,7 +54,6 @@ class WoodBlockPuzzle(gym.Env):
 
         # Choose the agent's location uniformly at random
         self._agent_location = self.np_random.integers(0, self.size, size=2, dtype=int)
-        
         # self._fill_box = [0,0,1,0 + ..  64]
         self._fill_box = self.np_random.integers(0, 2, size=(64,), dtype=int)
         self._next_block = 0 # 0 can only be 0
@@ -77,7 +79,7 @@ class WoodBlockPuzzle(gym.Env):
         observation = self._get_obs()
         info = self._get_info()
 
-        isGameOver = self.is_game_over(action)
+        isGameOver = self.is_game_over()
         if isGameOver == True:
             reward = 0
             terminated = True
@@ -186,16 +188,52 @@ class WoodBlockPuzzle(gym.Env):
         vertical, horizontal = divmod(box_count, 8)
         return vertical, horizontal
     
-    def is_game_over(self, action):
+    def is_game_over(self):
 
+        directions = []
         if self._next_block == 0:
-            pass
-        return False
+            directions = [(-1, 0), (1, 0), (0, -1), (0, 1)] # Cross
+
+        is_game_over = True
+        for count in range(64):
+            can_place_block = self.can_place_block(count)
+            if can_place_block == True:
+                is_game_over = False
+                break
+
+        return is_game_over
 
 
     def can_place_block(self, action):
 
-        return True
+        vertical, horizontal = self.getVerticalAndHorizontal(action)
+        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+        
+        #self._fill_box[row * 8 + col] = 1
+
+        can_place_block = True
+        if self._fill_box[horizontal * 8 + vertical] == 1:
+            can_place_block = False
+            
+        current_row = horizontal
+        current_col = vertical
+        # Explore the adjacent tiles
+        for direction in directions:
+            new_row = current_row + direction[0]
+            new_col = current_col + direction[1]
+  
+            if 7 < new_row or new_row < 0:
+                can_place_block = False
+                continue
+
+            if 7 < new_col or new_col < 0:
+                can_place_block = False
+                continue
+
+            if self._fill_box[new_row * 8 + new_col] == 1:
+                can_place_block = False
+
+        return can_place_block
     
     def place_block(self, action):
         #self._fill_box[action] = 1
@@ -204,10 +242,9 @@ class WoodBlockPuzzle(gym.Env):
         return True    
     
     def fill_adjacent_tiles(self, row, col):
-        print(row, col)
+
         # Define the adjacent positions (up, down, left, right)
         directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
-        #directions = [(-1, 0)]
 
         # Mark the current tile as 1
         self._fill_box[row * 8 + col] = 1
@@ -220,21 +257,7 @@ class WoodBlockPuzzle(gym.Env):
             new_col = current_col + direction[1]
             if 0 <= new_row < 8 and 0 <= new_col < 8:
                 self._fill_box[new_row * 8 + new_col] = 1
-        #    # Check if the new position is within the self._fill_box boundaries
-        #    if 0 <= new_row < 8 and 0 <= new_col < 8:
-        #        # Check if the tile is not already marked as 1
-        #        if self._fill_box[new_row * 8 + new_col] != 1:
-        #            # Mark the tile as 1 and enqueue it for further exploration
-        #            self._fill_box[new_row * 8 + new_col] = 1
-        #            queue.append((new_row, new_col))
 
-    ### Example usage
-    #board = [0] * 64
-
-    ### Place a block at row 3, column 4
-    #block_row = 3
-    #block_col = 4
-    #fill_adjacent_tiles(board, block_row, block_col)
 
     def count_reward(self):
 
@@ -243,14 +266,12 @@ class WoodBlockPuzzle(gym.Env):
         for i in range(8):
             # Check if the row is full of 1s
             if all(board[i*8 + j] == 1 for j in range(8)):
-                print("Resetting Row", i, "to 0.")
                 for j in range(8):
                     self._fill_box[i*8 + j] = 0
                 reward += 1
 
             # Check if the column is full of 1s
             if all(board[j*8 + i] == 1 for j in range(8)):
-                print("Resetting Column", i, "to 0.")
                 for j in range(8):
                     self._fill_box[j*8 + i] = 0
                 reward += 1
