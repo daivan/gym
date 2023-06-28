@@ -1,7 +1,7 @@
 import os
 from stable_baselines3 import *
 import sys
-from environments.WoodBlockPuzzle import WoodBlockPuzzle
+from environments.RockPaperScissor import RockPaperScissor
 
 algorithm = "ppo"
 if len(sys.argv) > 1:
@@ -24,7 +24,7 @@ if not os.path.exists(log_dir):
     os.makedirs(log_dir)
 
 
-env = WoodBlockPuzzle()
+env = RockPaperScissor()
 
 env.reset()
 if algorithm == "ppo":

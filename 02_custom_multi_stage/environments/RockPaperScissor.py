@@ -4,8 +4,14 @@ from gymnasium.spaces import Box
 from gymnasium import spaces
 import pygame
 
+'''
 
-class WoodBlockPuzzle(gym.Env):
+This is to test out stages
+You get to pick 3 actions in the first stage (rock paper scissor)
+You get to pick 10 actions in the second stage (rock, rock, paper, paper, scissor, scissor, rock, paper, scissor, rock) Random.
+You get points based on the actions you picked in the second stage.
+'''
+class RockPaperScissor(gym.Env):
     metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 4}
 
     def __init__(self, render_mode=None, size=8):
@@ -16,13 +22,15 @@ class WoodBlockPuzzle(gym.Env):
         # Each location is encoded as an element of {0, ..., `size`}^2, i.e. MultiDiscrete([size, size]).
         self.observation_space = spaces.Dict(
             {
-                "board": spaces.Box(0, 2, shape=(64,), dtype=int),
-                'next_block': spaces.Box(0, 1, shape=(1,), dtype=int) # can only be 0 as of now
+                "weapons": spaces.Box(0, 2, shape=(3,), dtype=int),
+                'enemies': spaces.Box(0, 2, shape=(10,), dtype=int) # can only be 0 as of now
             }
         )
 
-        # We have 4 actions, corresponding to "right", "up", "left", "down"
-        self.action_space = spaces.Discrete(63)
+        # Define the action spaces
+        # 0-2: Rock, Paper, Scissor
+        # 0-9: opponents to face
+        self.action_space = spaces.Discrete(29) #30 alternatives 0-9 = rock+opponents, 10-19 = paper+opponents, 20-29 = scissor+opponents
 
         assert render_mode is None or render_mode in self.metadata["render_modes"]
         self.render_mode = render_mode
@@ -38,21 +46,24 @@ class WoodBlockPuzzle(gym.Env):
         self.clock = None
 
     def _get_obs(self):
-        next_block = np.array([self._next_block])
-        return {"board": self._fill_box, "next_block": next_block}
+        return {
+            "weapons": self.weapons,
+            "enemies": self.enemies
+            }
     
     def _get_info(self):
-        return {"distance": "not important"}
-
-
+        return {"nothing matters": "not important"}
 
     def reset(self, seed=None, options=None):
         # We need the following line to seed self.np_random
         super().reset(seed=seed)
 
-        # self._fill_box = [0,0,1,0 + ..  64]
-        self._fill_box = self.np_random.integers(0, 2, size=(64,), dtype=int)
-        self._next_block = 0 # 0 can only be 0
+        # Reset the number of turns
+        self.turns = 0
+
+        self.weapons = np.random.randint(low=0, high=3, size=3) # is the same as, but random values np.array([0, 1, 2])
+        self.enemies = np.random.randint(low=0, high=3, size=10) # is the same as, but random values np.array([0, 1, 2, 0, 1, 2, 0, 1, 2, 2])
+        
 
         observation = self._get_obs()
         info = self._get_info()
@@ -65,28 +76,21 @@ class WoodBlockPuzzle(gym.Env):
 
     def step(self, action):
 
+        #first_action = action[0]
+
         observation = self._get_obs()
         info = self._get_info()
+
+        self.turns += 1
 
         isGameOver = self.is_game_over()
         if isGameOver == True:
             reward = 0
             terminated = True
             return observation, reward, terminated, False, info
-        
 
-        canPlaceBlock = self.can_place_block(action)
-        if canPlaceBlock == False:
-            reward = -1
-            terminated = False
-            return observation, reward, terminated, False, info
-        
+        reward = self.count_reward(action)
 
-        self.place_block(action)
-
-        reward = self.count_reward()
-
-        # An episode is done iff the agent has reached the target
         terminated = False
         observation = self._get_obs()
         info = self._get_info()
@@ -179,16 +183,10 @@ class WoodBlockPuzzle(gym.Env):
     
     def is_game_over(self):
 
-        directions = []
-        if self._next_block == 0:
-            directions = [(-1, 0), (1, 0), (0, -1), (0, 1)] # Cross
+        is_game_over = False
 
-        is_game_over = True
-        for count in range(64):
-            can_place_block = self.can_place_block(count)
-            if can_place_block == True:
-                is_game_over = False
-                break
+        if self.turns >= 100:
+            is_game_over = True
 
         return is_game_over
 
@@ -248,21 +246,40 @@ class WoodBlockPuzzle(gym.Env):
                 self._fill_box[new_row * 8 + new_col] = 1
 
 
-    def count_reward(self):
+    def count_reward(self, action):
 
-        reward = 0
-        board = self._fill_box
-        for i in range(8):
-            # Check if the row is full of 1s
-            if all(board[i*8 + j] == 1 for j in range(8)):
-                for j in range(8):
-                    self._fill_box[i*8 + j] = 0
-                reward += 1
+        #there are 30 actions
 
-            # Check if the column is full of 1s
-            if all(board[j*8 + i] == 1 for j in range(8)):
-                for j in range(8):
-                    self._fill_box[j*8 + i] = 0
-                reward += 1
+        # If action between 0-9, then picked first alternative
+        if action < 10:
+            weapon = self.weapons[0]
+            enemy = self.enemies[action]
+            pass
+        # If action between 10-19, then picked second alternative
+        elif action < 20:
+            weapon = self.weapons[1]
+            enemy = self.enemies[action-10]
+            pass
+        # If action between 20-29, then picked third alternative
+        elif action < 30:
+            weapon = self.weapons[2]
+            enemy = self.enemies[action-20]
+            pass
 
-        return reward
+        # 0 = rock
+        # 1 = paper
+        # 2 = scissor
+
+        # Its a draw, reward = 0
+        if weapon == enemy:
+            return 0
+        
+        # You win, reward = 3
+        if (weapon == 0 and enemy == 2) or (weapon == 1 and enemy == 0) or (weapon == 2 and enemy == 1):
+            return 3
+        
+        # If you lose, reward = -10
+        if (weapon == 0 and enemy == 1) or (weapon == 1 and enemy == 2) or (weapon == 2 and enemy == 0):
+            return -10
+        
+        
