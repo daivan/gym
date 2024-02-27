@@ -1,20 +1,22 @@
 import gymnasium as gym
 import os
+from stable_baselines3 import PPO
+import flappy_bird_gymnasium
+
 
 # Check what descrete it is https://stable-baselines.readthedocs.io/en/master/guide/algos.html to see what algorithm to use
 from stable_baselines3 import PPO
 
 # Change these two to match your model and file
 models_dir = "models/ppo"
-model_file = "110000"
+model_file = "2990000"
 
 # change how many times it will play
 episodes = 10
 
-model_path = f"{models_dir}/2990000.zip"
+model_path = f"{models_dir}/{model_file}"
 
-
-env = gym.make('LunarLander-v2', render_mode="human")
+env = gym.make('FlappyBird-v0', render_mode="human")
 
 model = PPO.load(model_path, env=env)
 
