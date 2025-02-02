@@ -64,3 +64,15 @@ Lets say that you have trained the model and you want to test it. Make sure you 
 ```
 python run_model.py
 ```
+
+
+#As of 2025-02-01, lets run
+```
+conda create --name gym_env python=3.9
+```
+conda activate gym_env
+
+
+pip install gymnasium
+pip install gymnasium[classic-control]
+pip install stable-baselines3[extra]
