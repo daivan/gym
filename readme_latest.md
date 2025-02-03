@@ -76,3 +76,6 @@ conda activate gym_env
 pip install gymnasium
 pip install gymnasium[classic-control]
 pip install stable-baselines3[extra]
+
+pip install swig
+pip install gymnasium[box2d]
